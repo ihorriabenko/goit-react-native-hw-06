@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
-import { StyleSheet, View, Text, FlatList, Image, Button, TouchableOpacity } from "react-native";
+import { StyleSheet, View, Text, FlatList, Image, TouchableOpacity } from "react-native";
 
 export const DefaultScreenPosts = ({ route, navigation }) => {
-  // const {title} = route.params;
-
   const [posts, setPosts] = useState([]);
 
   useEffect(() => {

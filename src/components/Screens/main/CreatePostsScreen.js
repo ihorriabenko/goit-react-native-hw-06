@@ -8,16 +8,17 @@ import {
   KeyboardAvoidingView,
   Keyboard,
   Pressable,
+  Button,
 } from "react-native";
 import { Camera } from "expo-camera";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import * as Location from "expo-location";
+import db from "../../../../firebase/config";
 
 export const CreatePostsScreen = ({ navigation }) => {
   const [camera, setCamera] = useState(null);
   const [photo, setPhoto] = useState(null);
   const [location, setLocation] = useState(null);
-  // const [title, setTitle] = useState("");
   const [isKeyboardShow, setIsKeyboardShow] = useState(false);
 
   useEffect(() => {
@@ -39,61 +40,61 @@ export const CreatePostsScreen = ({ navigation }) => {
   };
 
   const sendPhoto = () => {
+    uploadPhotoToServer();
     navigation.navigate("DefaultScreen", { photo, location });
     console.log("location", location);
   };
 
   const handleInputFocus = () => {
     setIsKeyboardShow(true);
-    console.log('isKeyboardShow', isKeyboardShow)
+    console.log("isKeyboardShow", isKeyboardShow);
   };
 
-  const handleOutKeyboardClick = () => {
-    setIsKeyboardShow(false);
-    Keyboard.dismiss();
+  const uploadPhotoToServer = async () => {
+    const response = await fetch(photo);
+    const file = await response.blob();
+
+    const uniquePostId = Date.now().toString();
+
+    const data = await db.storage().ref(`postImage/${uniquePostId}`).put(file);
+    
+    const processedPhoto = await db
+      .storage()
+      .ref("postImage")
+      .child(uniquePostId)
+      .getDownloadURL();
+
+    console.log("processedPhoto", processedPhoto);
   };
 
   return (
-    <Pressable style={styles.pressContainer} onPress={handleOutKeyboardClick}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-      >
-        <View style={styles.container}>
-          <Camera style={styles.camera} ref={setCamera}>
-            {photo && (
-              <View style={styles.takePhotoContainer}>
-                <Image
-                  source={{ uri: photo }}
-                  style={{ height: 50, width: 50 }}
-                />
-              </View>
-            )}
-            <TouchableOpacity style={styles.button} onPress={takePhoto}>
-              <View style={styles.takePhotoOut}>
-                <View style={styles.takePhotoInner}></View>
-              </View>
-            </TouchableOpacity>
-          </Camera>
-          <View style={styles.form}>
-            <TextInput
-              style={styles.input}
-              placeholder="Title"
-              // value={title}
-              // onChangeText={(value) => setTitle(value)}
-              onFocus={handleInputFocus}
-            ></TextInput>
-            <TextInput
-              style={{ ...styles.input, marginBottom: 32 }}
-              placeholder="Location"
-              onFocus={handleInputFocus}
-            ></TextInput>
-            <TouchableOpacity style={styles.buttonSend} onPress={sendPhoto}>
-              <Text style={styles.buttonSendText}>Publish</Text>
-            </TouchableOpacity>
+    <View style={styles.container}>
+      <Camera style={styles.camera} ref={setCamera}>
+        {photo && (
+          <View style={styles.takePhotoContainer}>
+            <Image source={{ uri: photo }} style={{ height: 50, width: 50 }} />
           </View>
-        </View>
-      </KeyboardAvoidingView>
-    </Pressable>
+        )}
+        <TouchableOpacity style={styles.button} onPress={takePhoto}>
+          <View style={styles.takePhotoOut}>
+            <View style={styles.takePhotoInner}></View>
+          </View>
+        </TouchableOpacity>
+      </Camera>
+      <TextInput
+        style={styles.input}
+        placeholder="Title"
+        onFocus={handleInputFocus}
+      ></TextInput>
+      <TextInput
+        style={{ ...styles.input, marginBottom: 32 }}
+        placeholder="Location"
+        onFocus={handleInputFocus}
+      ></TextInput>
+      <TouchableOpacity style={styles.buttonSend} onPress={sendPhoto}>
+        <Text style={styles.buttonSendText}>Publish</Text>
+      </TouchableOpacity>
+    </View>
   );
 };
 

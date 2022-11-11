@@ -11,9 +11,12 @@ import {
   Pressable,
 } from "react-native";
 import { useState } from "react";
+import { useDispatch } from "react-redux";
+
+import { authSignUpUser } from "../../../redux/auth/authOperations";
 
 const userInitData = {
-  username: "",
+  nickname: "",
   email: "",
   password: "",
 };
@@ -21,6 +24,8 @@ const userInitData = {
 export const RegistrationScreen = ({ navigation }) => {
   const [isKeyboardShow, setIsKeyboardShow] = useState(false);
   const [userData, setUserData] = useState(userInitData);
+
+  const dispatch = useDispatch();
 
   const handleInputFocus = () => {
     setIsKeyboardShow(true);
@@ -52,12 +57,12 @@ export const RegistrationScreen = ({ navigation }) => {
                 style={styles.input}
                 placeholder={"Username"}
                 placeholderTextColor={"#BDBDBD"}
-                value={userData.username}
+                value={userData.nickname}
                 onFocus={handleInputFocus}
                 onChangeText={(value) =>
                   setUserData((prevState) => ({
                     ...prevState,
-                    username: value,
+                    nickname: value,
                   }))
                 }
               />
@@ -93,6 +98,7 @@ export const RegistrationScreen = ({ navigation }) => {
                 activeOpacity={0.7}
                 onPress={() => {
                   console.log(userData);
+                  dispatch(authSignUpUser(userData))
                   setUserData(userInitData);
                 }}
               >

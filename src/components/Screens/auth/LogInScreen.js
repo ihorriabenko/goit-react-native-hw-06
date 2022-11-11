@@ -11,6 +11,9 @@ import {
   Pressable,
 } from "react-native";
 import { useState } from "react";
+import { useDispatch } from "react-redux";
+
+import { authSignInUser } from "../../../redux/auth/authOperations";
 
 const userInitData = {
   email: "",
@@ -20,6 +23,8 @@ const userInitData = {
 export const LogInScreen = ({ navigation }) => {
   const [isKeyboardShow, setIsKeyboardShow] = useState(false);
   const [userData, setUserData] = useState(userInitData);
+
+  const dispatch = useDispatch();
 
   const handleInputFocus = () => {
     setIsKeyboardShow(true);
@@ -79,6 +84,7 @@ export const LogInScreen = ({ navigation }) => {
                 activeOpacity={0.7}
                 onPress={() => {
                   console.log(userData);
+                  dispatch(authSignInUser(userData));
                   setUserData(userInitData);
                 }}
               >
