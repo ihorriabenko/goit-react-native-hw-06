@@ -1,13 +1,28 @@
 import { useEffect, useState } from "react";
-import { StyleSheet, View, Text, FlatList, Image, TouchableOpacity } from "react-native";
+import {
+  StyleSheet,
+  View,
+  Text,
+  FlatList,
+  Image,
+  TouchableOpacity,
+} from "react-native";
+import db from "../../../../firebase/config";
 
 export const DefaultScreenPosts = ({ route, navigation }) => {
   const [posts, setPosts] = useState([]);
 
+  const getAllPost = async () => {
+    await db
+      .firestore()
+      .collection("posts")
+      .onSnapshot((data) =>
+        setPosts(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      );
+  };
+
   useEffect(() => {
-    if (route.params) {
-      setPosts((prevState) => [...prevState, route.params]);
-    }
+    getAllPost();
   }, [route.params]);
 
   return (
@@ -23,17 +38,19 @@ export const DefaultScreenPosts = ({ route, navigation }) => {
           >
             <Image source={{ uri: item.photo }} style={styles.img} />
             <View>
-              <Text style={styles.title}>Title</Text>
+              <Text style={styles.title}>{item.comment}</Text>
               <View style={styles.nested}>
-                <TouchableOpacity onPress={() => navigation.navigate('Comments')}>
+                <TouchableOpacity
+                  onPress={() => navigation.navigate("Comments", {postId: item.id})}
+                >
                   <Image
                     source={require("../../../../assets/images/comments.png")}
                   />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigation.navigate('Map')}>
-                <Image
-                  source={require("../../../../assets/images/location.png")}
-                />
+                <TouchableOpacity onPress={() => navigation.navigate("Map", { location: item.location })}>
+                  <Image
+                    source={require("../../../../assets/images/location.png")}
+                  />
                 </TouchableOpacity>
               </View>
             </View>
@@ -65,7 +82,7 @@ const styles = StyleSheet.create({
   title: {
     marginBottom: 8,
 
-    fontFamily: 'RMed',
+    fontFamily: "RMed",
     fontSize: 16,
-  }
+  },
 });

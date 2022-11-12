@@ -5,21 +5,20 @@ import {
   StyleSheet,
   Image,
   TextInput,
-  KeyboardAvoidingView,
-  Keyboard,
-  Pressable,
-  Button,
 } from "react-native";
 import { Camera } from "expo-camera";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import * as Location from "expo-location";
 import db from "../../../../firebase/config";
+import { useSelector } from "react-redux";
 
 export const CreatePostsScreen = ({ navigation }) => {
   const [camera, setCamera] = useState(null);
   const [photo, setPhoto] = useState(null);
   const [location, setLocation] = useState(null);
-  const [isKeyboardShow, setIsKeyboardShow] = useState(false);
+  const [comment, setComment] = useState("");
+
+  const { userId, nickName } = useSelector((state) => state.auth);
 
   useEffect(() => {
     (async () => {
@@ -40,14 +39,16 @@ export const CreatePostsScreen = ({ navigation }) => {
   };
 
   const sendPhoto = () => {
-    uploadPhotoToServer();
+    uploadPostToServer();
     navigation.navigate("DefaultScreen", { photo, location });
-    console.log("location", location);
   };
 
-  const handleInputFocus = () => {
-    setIsKeyboardShow(true);
-    console.log("isKeyboardShow", isKeyboardShow);
+  const uploadPostToServer = async () => {
+    const photo = await uploadPhotoToServer();
+    const createPost = await db
+      .firestore()
+      .collection("posts")
+      .add({ photo, comment, location: location.coords, userId, nickName });
   };
 
   const uploadPhotoToServer = async () => {
@@ -56,15 +57,15 @@ export const CreatePostsScreen = ({ navigation }) => {
 
     const uniquePostId = Date.now().toString();
 
-    const data = await db.storage().ref(`postImage/${uniquePostId}`).put(file);
-    
+    await db.storage().ref(`postImage/${uniquePostId}`).put(file);
+
     const processedPhoto = await db
       .storage()
       .ref("postImage")
       .child(uniquePostId)
       .getDownloadURL();
 
-    console.log("processedPhoto", processedPhoto);
+    return processedPhoto;
   };
 
   return (
@@ -84,12 +85,11 @@ export const CreatePostsScreen = ({ navigation }) => {
       <TextInput
         style={styles.input}
         placeholder="Title"
-        onFocus={handleInputFocus}
+        onChangeText={setComment}
       ></TextInput>
       <TextInput
         style={{ ...styles.input, marginBottom: 32 }}
         placeholder="Location"
-        onFocus={handleInputFocus}
       ></TextInput>
       <TouchableOpacity style={styles.buttonSend} onPress={sendPhoto}>
         <Text style={styles.buttonSendText}>Publish</Text>
